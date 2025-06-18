@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Tag Creation Chatbot - Sequential Mockups</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .step.active {
+            background: #007bff;
+        }
+        
+        .step.completed {
+            background: #28a745;
+        }
+        
+        .mockup-container {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .mockup-container.active {
+            display: block;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .chat-body {
+            padding: 20px;
+            min-height: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message.bot {
+            justify-content: flex-start;
+        }
+        
+        .message.user {
+            justify-content: flex-end;
+        }
+        
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        
+        .bot .message-bubble {
+            background: #f1f3f4;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .user .message-bubble {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        
+        .option-btn:hover {
+            background: #e9ecef;
+            border-color: #007bff;
+        }
+        
+        .option-btn.selected {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .input-group {
+            margin-top: 15px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .tag-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .tag-item {
+            background: #007bff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            display: inline-block;
+            margin: 5px 5px 5px 0;
+            font-size: 12px;
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+        
+        .color-option.selected {
+            border-color: #333;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .nav-btn:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+        }
+        
+        .step-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        
+        .similarity-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .multiple-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Event Tag Creation Chatbot</h1>
+            <p>Sequential Interface Mockups - Following Original Flow</p>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step active" onclick="showStep(1)">1</div>
+            <div class="step" onclick="showStep(2)">2</div>
+            <div class="step" onclick="showStep(3)">3</div>
+            <div class="step" onclick="showStep(4)">4</div>
+            <div class="step" onclick="showStep(5)">5</div>
+            <div class="step" onclick="showStep(6)">6</div>
+            <div class="step" onclick="showStep(7)">7</div>
+            <div class="step" onclick="showStep(8)">8</div>
+            <div class="step" onclick="showStep(9)">9</div>
+            <div class="step" onclick="showStep(10)">10</div>
+        </div>
+        
+        <!-- Step 1: Initial Assistant Message -->
+        <div class="mockup-container active" id="step-1">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+                <p>Kalki Event Management</p>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 1: Initial Assistant Message</div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        👋 Hello! I'm your Tag Creation Assistant. I'll help you create and manage tags for your events in Kalki.
+                        <br><br>
+                        What would you like to do?
+                    </div>
+                </div>
+                <div class="options">
+                    <div class="option-btn" onclick="selectOption(this)">📖 View Tag Guide</div>
+                    <div class="option-btn" onclick="selectOption(this)">📚 Read Tagging Manual</div>
+                    <div class="option-btn" onclick="selectOption(this)">🏷️ Create Tag</div>
+                    <div class="option-btn" onclick="selectOption(this)">❓ Ask a Question</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 2: Tag Guide/Manual -->
+        <div class="mockup-container" id="step-2">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 2: Tag Guide & Manual</div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        📖 Here's a quick guide to tagging:
+                        <br><br>
+                        <strong>Tags help you:</strong><br>
+                        • Categorize events<br>
+                        • Filter and search<br>
+                        • Generate reports<br>
+                        • Track trends
+                    </div>
+                </div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        <strong>Best Practices:</strong><br>
+                        • Use descriptive names<br>
+                        • Avoid duplicates<br>
+                        • Keep it concise<br>
+                        • Use consistent naming
+                    </div>
+                </div>
+                <div class="options">
+                    <div class="option-btn" onclick="selectOption(this)">🏷️ Create Tag Now</div>
+                    <div class="option-btn" onclick="selectOption(this)">❓ Ask a Question</div>
+                    <div class="option-btn" onclick="selectOption(this)">❌ Don't want to tag</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 3: Available Tags & Suggestions -->
+        <div class="mockup-container" id="step-3">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 3: Available Tags & Suggestions</div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        🏷️ Here are some available tags you can use, or create a custom one:
+                    </div>
+                </div>
+                <div class="options">
+                    <div class="option-btn" onclick="selectOption(this)">📱 Product Launch</div>
+                    <div class="option-btn" onclick="selectOption(this)">🎯 Marketing Campaign</div>
+                    <div class="option-btn" onclick="selectOption(this)">🤝 Partnership</div>
+                    <div class="option-btn" onclick="selectOption(this)">📊 Financial Report</div>
+                    <div class="option-btn" onclick="selectOption(this)">👥 Team Meeting</div>
+                    <div class="option-btn" onclick="selectOption(this)">📈 Sales Update</div>
+                    <div class="option-btn" onclick="selectOption(this)">✨ Custom Tag</div>
+                    <div class="option-btn" onclick="selectOption(this)">❌ Don't want to tag</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 4: Single vs Multiple Tag Selection -->
+        <div class="mockup-container" id="step-4">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 4: Single vs Multiple Tag Selection</div>
+                <div class="message user">
+                    <div class="message-bubble">✨ Custom Tag</div>
+                </div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        Great choice! Would you like to create a single tag or multiple tags?
+                    </div>
+                </div>
+                <div class="options">
+                    <div class="option-btn" onclick="selectOption(this)">1️⃣ Single Tag</div>
+                    <div class="option-btn" onclick="selectOption(this)">📊 Multiple Tags</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 5: Input Description -->
+        <div class="mockup-container" id="step-5">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 5: Input Description</div>
+                <div class="message user">
+                    <div class="message-bubble">📊 Multiple Tags</div>
+                </div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        Please provide descriptions for your tags:
+                    </div>
+                </div>
+                <div class="multiple-inputs">
+                    <div class="input-group">
+                        <label class="input-label">Tag 1 Description:</label>
+                        <input type="text" class="input-field" placeholder="e.g., Press release about Q4 results">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Tag 2 Description:</label>
+                        <input type="text" class="input-field" placeholder="e.g., Social media campaign launch">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Tag 3 Description:</label>
+                        <input type="text" class="input-field" placeholder="e.g., Investor relations meeting">
+                    </div>
+                </div>
+                <button class="btn-primary">Submit Descriptions</button>
+            </div>
+        </div>
+        
+        <!-- Step 6: Similarity Check -->
+        <div class="mockup-container" id="step-6">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 6: Similarity Check</div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        🔍 Checking for similar existing tags...
+                    </div>
+                </div>
+                <div class="similarity-warning">
+                    ⚠️ <strong>Similar tag found!</strong><br>
+                    Your description "Press release about Q4 results" is similar to the existing tag "📊 Financial Report"
+                </div>
+                <div class="options">
+                    <div class="option-btn" onclick="selectOption(this)">✅ Use the suggested tag "📊 Financial Report"</div>
+                    <div class="option-btn" onclick="selectOption(this)">➕ Add a new tag anyway</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 7: Tag Titles -->
+        <div class="mockup-container" id="step-7">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 7: Tag Titles</div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        Please provide titles for your new tags:
+                    </div>
+                </div>
+                <div class="multiple-inputs">
+                    <div class="input-group">
+                        <label class="input-label">Tag Title 1:</label>
+                        <input type="text" class="input-field" value="Q4 Press Release" placeholder="Enter tag title">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Tag Title 2:</label>
+                        <input type="text" class="input-field" value="Social Media Launch" placeholder="Enter tag title">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Tag Title 3:</label>
+                        <input type="text" class="input-field" value="Investor Relations" placeholder="Enter tag title">
+                    </div>
+                </div>
+                <button class="btn-primary">Submit Titles</button>
+            </div>
+        </div>
+        
+        <!-- Step 8: First Confirmation -->
+        <div class="mockup-container" id="step-8">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 8: Confirm Tags</div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        📋 Please review your tags:
+                    </div>
+                </div>
+                <div class="tag-preview">
+                    <h4>Tags to be created:</h4>
+                    <div class="tag-item">Q4 Press Release</div>
+                    <div class="tag-item">Social Media Launch</div>
+                    <div class="tag-item">Investor Relations</div>
+                </div>
+                <div class="options">
+                    <div class="option-btn" onclick="selectOption(this)">✅ Confirm Tags</div>
+                    <div class="option-btn" onclick="selectOption(this)">✏️ Edit Tags</div>
+                    <div class="option-btn" onclick="selectOption(this)">❌ Cancel</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 9: Tag Colors -->
+        <div class="mockup-container" id="step-9">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 9: Tag Colors</div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        🎨 Choose colors for your tags:
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Q4 Press Release:</label>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background: #007bff;"></div>
+                        <div class="color-option" style="background: #28a745;"></div>
+                        <div class="color-option" style="background: #dc3545;"></div>
+                        <div class="color-option" style="background: #ffc107;"></div>
+                        <div class="color-option" style="background: #6f42c1;"></div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Social Media Launch:</label>
+                    <div class="color-picker">
+                        <div class="color-option" style="background: #007bff;"></div>
+                        <div class="color-option selected" style="background: #28a745;"></div>
+                        <div class="color-option" style="background: #dc3545;"></div>
+                        <div class="color-option" style="background: #ffc107;"></div>
+                        <div class="color-option" style="background: #6f42c1;"></div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Investor Relations:</label>
+                    <div class="color-picker">
+                        <div class="color-option" style="background: #007bff;"></div>
+                        <div class="color-option" style="background: #28a745;"></div>
+                        <div class="color-option" style="background: #dc3545;"></div>
+                        <div class="color-option" style="background: #ffc107;"></div>
+                        <div class="color-option selected" style="background: #6f42c1;"></div>
+                    </div>
+                </div>
+                <button class="btn-primary">Set Colors</button>
+            </div>
+        </div>
+        
+        <!-- Step 10: Final Confirmation & Success -->
+        <div class="mockup-container" id="step-10">
+            <div class="chat-header">
+                <h3>🏷️ Tag Creation Assistant</h3>
+            </div>
+            <div class="chat-body">
+                <div class="step-title">Step 10: Final Confirmation</div>
+                <div class="message bot">
+                    <div class="message-bubble">
+                        🔍 Final review - Confirm tags and colors?
+                    </div>
+                </div>
+                <div class="tag-preview">
+                    <h4>Final Tags:</h4>
+                    <div class="tag-item" style="background: #007bff;">Q4 Press Release</div>
+                    <div class="tag-item" style="background: #28a745;">Social Media Launch</div>
+                    <div class="tag-item" style="background: #6f42c1;">Investor Relations</div>
+                </div>
+                <div class="options">
+                    <div class="option-btn" onclick="selectOption(this)">✅ Yes, Create Tags</div>
+                    <div class="option-btn" onclick="selectOption(this)">❌ No, Go Back</div>
+                </div>
+                <div class="success-message" style="display: none;" id="success-msg">
+                    🎉 <strong>Success!</strong><br>
+                    Your tags have been created successfully!<br>
+                    You can now use them to tag your events.
+                </div>
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-btn" onclick="previousStep()" id="prev-btn" disabled>← Previous</button>
+            <button class="nav-btn" onclick="nextStep()" id="next-btn">Next →</button>
+        </div>
+    </div>
+    
+    <script>
+        let currentStep = 1;
+        const totalSteps = 10;
+        
+        function showStep(step) {
+            // Hide all mockups
+            document.querySelectorAll('.mockup-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // Show selected mockup
+            document.getElementById(`step-${step}`).classList.add('active');
+            
+            // Update step indicators
+            document.querySelectorAll('.step').forEach((stepEl, index) => {
+                stepEl.classList.remove('active', 'completed');
+                if (index + 1 === step) {
+                    stepEl.classList.add('active');
+                } else if (index + 1 < step) {
+                    stepEl.classList.add('completed');
+                }
+            });
+            
+            currentStep = step;
+            
+            // Update navigation buttons
+            document.getElementById('prev-btn').disabled = step === 1;
+            document.getElementById('next-btn').disabled = step === totalSteps;
+            
+            if (step === totalSteps) {
+                document.getElementById('next-btn').textContent = 'Complete';
+            } else {
+                document.getElementById('next-btn').textContent = 'Next →';
+            }
+        }
+        
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                showStep(currentStep + 1);
+            }
+        }
+        
+        function previousStep() {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        }
+        
+        function selectOption(element) {
+            // Remove previous selections
+            element.parentNode.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selection to clicked option
+            element.classList.add('selected');
+            
+            // Special handling for final confirmation
+            if (element.textContent.includes('Yes, Create Tags')) {
+                setTimeout(() => {
+                    document.getElementById('success-msg').style.display = 'block';
+                }, 1000);
+            }
+        }
+        
+        // Color picker functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('color-option')) {
+                const colorPicker = e.target.parentNode;
+                colorPicker.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                e.target.classList.add('selected');
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' && currentStep < totalSteps) {
+                nextStep();
+            } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+                previousStep();
+            }
+        });
+    </script>
+</body>
+</html>

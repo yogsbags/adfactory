@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Event Tag Creation Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .chatbot-container {
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+        
+        .chat-header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 10px;
+            height: 10px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.bot {
+            justify-content: flex-start;
+        }
+        
+        .message.user {
+            justify-content: flex-end;
+        }
+        
+        .message-bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            position: relative;
+        }
+        
+        .bot .message-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .typing-dots {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .dot {
+            height: 8px;
+            width: 8px;
+            margin: 0 2px;
+            background: #999;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1.4s infinite;
+        }
+        
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        
+        .options-container {
+            padding: 0 20px 20px;
+            display: none;
+        }
+        
+        .options-container.show {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .option-btn {
+            width: 100%;
+            background: white;
+            border: 2px solid #e9ecef;
+            color: #333;
+            padding: 12px 16px;
+            margin: 5px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        .option-btn:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .option-btn:active {
+            transform: translateY(0);
+        }
+        
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: none;
+        }
+        
+        .input-container.show {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .tag-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+        
+        .tag-item {
+            display: inline-block;
+            padding: 6px 12px;
+            margin: 3px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: white;
+            animation: popIn 0.3s ease-out;
+        }
+        
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.selected {
+            border-color: #333;
+            transform: scale(1.2);
+        }
+        
+        .color-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #ffc107;
+            font-size: 13px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .restart-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .scroll-to-bottom {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 480px) {
+            .chatbot-container {
+                height: 100vh;
+                border-radius: 0;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="chat-header">
+            <div class="status-indicator"></div>
+            <h3>🏷️ Tag Creation Assistant</h3>
+            <p>Kalki Event Management</p>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be added here dynamically -->
+        </div>
+        
+        <div class="typing-indicator" id="typing-indicator">
+            <div class="typing-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+        
+        <div class="options-container" id="options-container">
+            <!-- Options will be added here dynamically -->
+        </div>
+        
+        <div class="input-container" id="input-container">
+            <!-- Input fields will be added here dynamically -->
+        </div>
+        
+        <button class="scroll-to-bottom" id="scroll-btn" onclick="scrollToBottom()">↓</button>
+    </div>
+    
+    <script>
+        class TagCreationChatbot {
+            constructor() {
+                this.currentStep = 'initial';
+                this.chatMessages = document.getElementById('chat-messages');
+                this.optionsContainer = document.getElementById('options-container');
+                this.inputContainer = document.getElementById('input-container');
+                this.typingIndicator = document.getElementById('typing-indicator');
+                this.scrollBtn = document.getElementById('scroll-btn');
+                
+                this.tagData = {
+                    type: null, // 'single' or 'multiple'
+                    descriptions: [],
+                    titles: [],
+                    colors: [],
+                    similarTags: []
+                };
+                
+                this.availableTags = [
+                    '📱 Product Launch',
+                    '🎯 Marketing Campaign', 
+                    '🤝 Partnership',
+                    '📊 Financial Report',
+                    '👥 Team Meeting',
+                    '📈 Sales Update'
+                ];
+                
+                this.tagColors = [
+                    '#007bff', '#28a745', '#dc3545', '#ffc107', '#6f42c1', '#20c997'
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.addBotMessage("👋 Hello! I'm your Tag Creation Assistant. I'll help you create and manage tags for your events in Kalki.\n\nWhat would you like to do?");
+                this.showOptions([
+                    { text: '📖 View Tag Guide', action: 'showGuide' },
+                    { text: '📚 Read Tagging Manual', action: 'showManual' },
+                    { text: '🏷️ Create Tag', action: 'startTagCreation' },
+                    { text: '❓ Ask a Question', action: 'showHelp' }
+                ]);
+                
+                this.setupScrollListener();
+            }
+            
+            setupScrollListener() {
+                this.chatMessages.addEventListener('scroll', () => {
+                    const { scrollTop, scrollHeight, clientHeight } = this.chatMessages;
+                    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
+                    this.scrollBtn.style.display = isNearBottom ? 'none' : 'flex';
+                });
+            }
+            
+            addBotMessage(text, delay = 1000) {
+                this.showTyping();
+                setTimeout(() => {
+                    this.hideTyping();
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message bot';
+                    messageDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
+                    this.chatMessages.appendChild(messageDiv);
+                    this.scrollToBottom();
+                }, delay);
+            }
+            
+            addUserMessage(text) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message user';
+                messageDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+            
+            showTyping() {
+                this.typingIndicator.style.display = 'flex';
+                this.scrollToBottom();
+            }
+            
+            hideTyping() {
+                this.typingIndicator.style.display = 'none';
+            }
+            
+            showOptions(options) {
+                setTimeout(() => {
+                    this.optionsContainer.innerHTML = '';
+                    options.forEach(option => {
+                        const btn = document.createElement('button');
+                        btn.className = 'option-btn';
+                        btn.textContent = option.text;
+                        btn.onclick = () => this.handleOptionClick(option.action, option.text, option.data);
+                        this.optionsContainer.appendChild(btn);
+                    });
+                    this.optionsContainer.classList.add('show');
+                    this.inputContainer.classList.remove('show');
+                }, 1200);
+            }
+            
+            hideOptions() {
+                this.optionsContainer.classList.remove('show');
+            }
+            
+            handleOptionClick(action, text, data = null) {
+                this.addUserMessage(text);
+                this.hideOptions();
+                
+                setTimeout(() => {
+                    switch(action) {
+                        case 'showGuide':
+                            this.showGuide();
+                            break;
+                        case 'showManual':
+                            this.showManual();
+                            break;
+                        case 'startTagCreation':
+                            this.startTagCreation();
+                            break;
+                        case 'showHelp':
+                            this.showHelp();
+                            break;
+                        case 'showAvailableTags':
+                            this.showAvailableTags();
+                            break;
+                        case 'createCustomTag':
+                            this.askTagType();
+                            break;
+                        case 'selectExistingTag':
+                            this.selectExistingTag(data);
+                            break;
+                        case 'singleTag':
+                            this.tagData.type = 'single';
+                            this.getSingleTagInput();
+                            break;
+                        case 'multipleTags':
+                            this.tagData.type = 'multiple';
+                            this.getMultipleTagsInput();
+                            break;
+                        case 'useSuggestedTag':
+                            this.useSuggestedTag();
+                            break;
+                        case 'addNewTag':
+                            this.getTitlesInput();
+                            break;
+                        case 'confirmTags':
+                            this.showColorSelection();
+                            break;
+                        case 'editTags':
+                            this.editTags();
+                            break;
+                        case 'finalConfirm':
+                            this.createTags();
+                            break;
+                        case 'goBack':
+                            this.showColorSelection();
+                            break;
+                        case 'dontWantToTag':
+                            this.exitFlow();
+                            break;
+                        case 'restart':
+                            this.restart();
+                            break;
+                        case 'customizeExistingTagColor':
+                            this.customizeExistingTagColor();
+                            break;
+                        case 'confirmExistingTagColor':
+                            this.confirmExistingTagColor();
+                            break;
+                        case 'useExistingTagAsIs':
+                            this.useExistingTagAsIs();
+                            break;
+                    }
+                }, 500);
+            }
+            
+            showGuide() {
+                this.addBotMessage("📖 Here's a quick guide to tagging:\n\n<strong>Tags help you:</strong><br>• Categorize events<br>• Filter and search<br>• Generate reports<br>• Track trends\n\n<strong>Best Practices:</strong><br>• Use descriptive names<br>• Avoid duplicates<br>• Keep it concise<br>• Use consistent naming");
+                this.showOptions([
+                    { text: '🏷️ Create Tag Now', action: 'startTagCreation' },
+                    { text: '❓ Ask a Question', action: 'showHelp' },
+                    { text: '❌ Don\'t want to tag', action: 'dontWantToTag' }
+                ]);
+            }
+            
+            showManual() {
+                this.addBotMessage("📚 <strong>Tagging Manual:</strong>\n\n<strong>1. Planning Your Tags</strong><br>• Think about your reporting needs<br>• Consider your team's workflow<br>• Plan for future scalability\n\n<strong>2. Naming Conventions</strong><br>• Use clear, descriptive names<br>• Avoid special characters<br>• Keep under 25 characters\n\n<strong>3. Color Coding</strong><br>• Use colors consistently<br>• Different colors for different categories<br>• Consider accessibility");
+                this.showOptions([
+                    { text: '🏷️ Create Tag Now', action: 'startTagCreation' },
+                    { text: '❓ Ask a Question', action: 'showHelp' },
+                    { text: '❌ Don\'t want to tag', action: 'dontWantToTag' }
+                ]);
+            }
+            
+            showHelp() {
+                this.addBotMessage("❓ <strong>Frequently Asked Questions:</strong>\n\n<strong>Q: How many tags can I create?</strong><br>A: You can create up to 50 custom tags per project.\n\n<strong>Q: Can I edit tags later?</strong><br>A: Yes, you can always edit tag names and colors.\n\n<strong>Q: How do I delete a tag?</strong><br>A: Contact your support team for tag deletion.\n\n<strong>Q: Can multiple people use the same tags?</strong><br>A: Yes, tags are shared across your organization.");
+                this.showOptions([
+                    { text: '🏷️ Create Tag Now', action: 'startTagCreation' },
+                    { text: '📖 View Tag Guide', action: 'showGuide' },
+                    { text: '❌ Don\'t want to tag', action: 'dontWantToTag' }
+                ]);
+            }
+            
+            startTagCreation() {
+                this.addBotMessage("🏷️ Great! Let's create some tags. You can either use existing tags or create custom ones.\n\nWould you like to see available tags first?");
+                this.showOptions([
+                    { text: '👀 Show Available Tags', action: 'showAvailableTags' },
+                    { text: '✨ Create Custom Tag', action: 'createCustomTag' },
+                    { text: '❌ Don\'t want to tag', action: 'dontWantToTag' }
+                ]);
+            }
+            
+            showAvailableTags() {
+                this.addBotMessage("🏷️ Here are some available tags you can use. Click on any tag to select it:");
+                
+                // Create options for each available tag
+                const tagOptions = this.availableTags.map(tag => ({
+                    text: tag,
+                    action: 'selectExistingTag',
+                    data: tag
+                }));
+                
+                // Add additional options
+                tagOptions.push(
+                    { text: '✨ Create Custom Tag', action: 'createCustomTag' },
+                    { text: '❌ Don\'t want to tag', action: 'dontWantToTag' }
+                );
+                
+                this.showOptions(tagOptions);
+            }
+            
+            askTagType() {
+                this.addBotMessage("Perfect! Would you like to create a single tag or multiple tags at once?");
+                this.showOptions([
+                    { text: '1️⃣ Single Tag', action: 'singleTag' },
+                    { text: '📊 Multiple Tags', action: 'multipleTags' }
+                ]);
+            }
+            
+            getSingleTagInput() {
+                this.addBotMessage("Please describe what you want to tag. I'll help you create the perfect tag for it.");
+                this.showInput([
+                    { label: 'Tag Description:', placeholder: 'e.g., Press release about Q4 results', id: 'single-desc' }
+                ], () => this.processSingleTag());
+            }
+            
+            getMultipleTagsInput() {
+                this.addBotMessage("Great! Please provide descriptions for up to 3 tags:");
+                this.showInput([
+                    { label: 'Tag 1 Description:', placeholder: 'e.g., Press release about Q4 results', id: 'desc-1' },
+                    { label: 'Tag 2 Description:', placeholder: 'e.g., Social media campaign launch', id: 'desc-2' },
+                    { label: 'Tag 3 Description:', placeholder: 'e.g., Investor relations meeting', id: 'desc-3' }
+                ], () => this.processMultipleTags());
+            }
+            
+            showInput(fields, submitCallback) {
+                setTimeout(() => {
+                    this.inputContainer.innerHTML = '';
+                    
+                    fields.forEach(field => {
+                        const group = document.createElement('div');
+                        group.className = 'input-group';
+                        
+                        const label = document.createElement('label');
+                        label.className = 'input-label';
+                        label.textContent = field.label;
+                        
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'input-field';
+                        input.placeholder = field.placeholder;
+                        input.id = field.id;
+                        
+                        group.appendChild(label);
+                        group.appendChild(input);
+                        this.inputContainer.appendChild(group);
+                    });
+                    
+                    const submitBtn = document.createElement('button');
+                    submitBtn.className = 'btn-primary';
+                    submitBtn.textContent = 'Submit';
+                    submitBtn.onclick = submitCallback;
+                    
+                    this.inputContainer.appendChild(submitBtn);
+                    this.inputContainer.classList.add('show');
+                }, 1200);
+            }
+            
+            processSingleTag() {
+                const description = document.getElementById('single-desc').value.trim();
+                if (!description) {
+                    alert('Please enter a description for your tag.');
+                    return;
+                }
+                
+                this.tagData.descriptions = [description];
+                this.addUserMessage(`Description: "${description}"`);
+                this.hideInput();
+                this.checkSimilarity();
+            }
+            
+            processMultipleTags() {
+                const descriptions = [];
+                for (let i = 1; i <= 3; i++) {
+                    const desc = document.getElementById(`desc-${i}`).value.trim();
+                    if (desc) descriptions.push(desc);
+                }
+                
+                if (descriptions.length === 0) {
+                    alert('Please enter at least one description.');
+                    return;
+                }
+                
+                this.tagData.descriptions = descriptions;
+                this.addUserMessage(`Descriptions: ${descriptions.map(d => `"${d}"`).join(', ')}`);
+                this.hideInput();
+                this.checkSimilarity();
+            }
+            
+            hideInput() {
+                this.inputContainer.classList.remove('show');
+            }
+            
+            checkSimilarity() {
+                this.addBotMessage("🔍 Checking for similar existing tags...");
+                
+                // Simulate similarity check
+                setTimeout(() => {
+                    const hasSimilar = Math.random() > 0.6; // 40% chance of similar tag
+                    
+                    if (hasSimilar) {
+                        this.addBotMessage("⚠️ <strong>Similar tag found!</strong><br>Your description is similar to the existing tag \"📊 Financial Report\"");
+                        this.showOptions([
+                            { text: '✅ Use the suggested tag "📊 Financial Report"', action: 'useSuggestedTag' },
+                            { text: '➕ Add a new tag anyway', action: 'addNewTag' }
+                        ]);
+                    } else {
+                        this.addBotMessage("✨ Great! No similar tags found. Let's create your new tags.");
+                        this.getTitlesInput();
+                    }
+                }, 2000);
+            }
+            
+            useSuggestedTag() {
+                this.addBotMessage("Perfect! I've added the existing tag \"📊 Financial Report\" to your selection.");
+                this.tagData.titles = ['📊 Financial Report'];
+                this.tagData.colors = ['#007bff'];
+                this.showFinalConfirmation();
+            }
+            
+            selectExistingTag(tagName) {
+                this.addBotMessage(`Perfect! You've selected "${tagName}". This tag is ready to use.`);
+                
+                // Set up the tag data for the selected existing tag
+                this.tagData.titles = [tagName];
+                this.tagData.colors = [this.tagColors[0]]; // Default color
+                this.tagData.type = 'existing';
+                
+                this.showOptions([
+                    { text: '🎨 Customize Color', action: 'customizeExistingTagColor' },
+                    { text: '✅ Use Tag As-Is', action: 'useExistingTagAsIs' },
+                    { text: '➕ Add Another Tag', action: 'showAvailableTags' },
+                    { text: '❌ Cancel', action: 'dontWantToTag' }
+                ]);
+            }
+            
+            customizeExistingTagColor() {
+                this.addBotMessage("🎨 Choose a color for your selected tag:");
+                
+                setTimeout(() => {
+                    this.inputContainer.innerHTML = '';
+                    
+                    const group = document.createElement('div');
+                    group.className = 'input-group';
+                    
+                    const label = document.createElement('label');
+                    label.className = 'input-label';
+                    label.textContent = `${this.tagData.titles[0]}:`;
+                    
+                    const colorPicker = document.createElement('div');
+                    colorPicker.className = 'color-picker';
+                    
+                    this.tagColors.forEach((color, colorIndex) => {
+                        const colorOption = document.createElement('div');
+                        colorOption.className = 'color-option';
+                        colorOption.style.background = color;
+                        colorOption.dataset.color = color;
+                        
+                        // Set the first color as default selected
+                        if (colorIndex === 0) {
+                            colorOption.classList.add('selected');
+                            this.tagData.colors[0] = color;
+                        }
+                        
+                        colorOption.onclick = () => this.selectExistingTagColor(colorOption);
+                        colorPicker.appendChild(colorOption);
+                    });
+                    
+                    group.appendChild(label);
+                    group.appendChild(colorPicker);
+                    this.inputContainer.appendChild(group);
+                    
+                    const submitBtn = document.createElement('button');
+                    submitBtn.className = 'btn-primary';
+                    submitBtn.textContent = 'Set Color';
+                    submitBtn.onclick = () => this.confirmExistingTagColor();
+                    
+                    this.inputContainer.appendChild(submitBtn);
+                    this.inputContainer.classList.add('show');
+                }, 1200);
+            }
+            
+            selectExistingTagColor(colorElement) {
+                // Remove previous selection
+                const colorPicker = colorElement.parentNode;
+                colorPicker.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // Add selection to clicked color
+                colorElement.classList.add('selected');
+                this.tagData.colors[0] = colorElement.dataset.color;
+            }
+            
+            confirmExistingTagColor() {
+                this.hideInput();
+                
+                const previewHtml = `<span class="tag-item" style="background: ${this.tagData.colors[0]};">${this.tagData.titles[0]}</span>`;
+                
+                this.addBotMessage(`🎉 <strong>Perfect!</strong><br>Your customized tag is ready!\n\n<div class="tag-preview">${previewHtml}</div>\n\n<div class="success-message">✨ Tag is now available for use in your events.<br>You can find it in the tag selector when creating or editing events.</div>`);
+                
+                setTimeout(() => {
+                    this.showOptions([
+                        { text: '🏷️ Add More Tags', action: 'showAvailableTags' },
+                        { text: '✨ Create Custom Tag', action: 'createCustomTag' },
+                        { text: '🔄 Start Over', action: 'restart' }
+                    ]);
+                }, 2000);
+            }
+            
+            useExistingTagAsIs() {
+                const previewHtml = `<span class="tag-item" style="background: ${this.tagData.colors[0]};">${this.tagData.titles[0]}</span>`;
+                
+                this.addBotMessage(`🎉 <strong>Success!</strong><br>Your tag "${this.tagData.titles[0]}" is ready to use!\n\n<div class="tag-preview">${previewHtml}</div>\n\n<div class="success-message">✨ Tag is now available for use in your events.<br>You can find it in the tag selector when creating or editing events.</div>`);
+                
+                setTimeout(() => {
+                    this.showOptions([
+                        { text: '🏷️ Add More Tags', action: 'showAvailableTags' },
+                        { text: '✨ Create Custom Tag', action: 'createCustomTag' },
+                        { text: '🔄 Start Over', action: 'restart' }
+                    ]);
+                }, 2000);
+            }
+            
+            getTitlesInput() {
+                this.addBotMessage("Now, please provide titles for your tags:");
+                
+                const fields = this.tagData.descriptions.map((desc, index) => ({
+                    label: `Tag ${index + 1} Title:`,
+                    placeholder: this.generateSuggestedTitle(desc),
+                    id: `title-${index + 1}`
+                }));
+                
+                this.showInput(fields, () => this.processTitles());
+            }
+            
+            generateSuggestedTitle(description) {
+                // Simple title generation based on keywords
+                const keywords = description.toLowerCase().split(' ');
+                const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about'];
+                const relevantWords = keywords.filter(word => !commonWords.includes(word));
+                
+                if (relevantWords.length > 0) {
+                    return relevantWords.slice(0, 2).map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                    ).join(' ');
+                }
+                return 'New Tag';
+            }
+            
+            processTitles() {
+                const titles = [];
+                for (let i = 1; i <= this.tagData.descriptions.length; i++) {
+                    const title = document.getElementById(`title-${i}`).value.trim();
+                    if (title) titles.push(title);
+                }
+                
+                if (titles.length !== this.tagData.descriptions.length) {
+                    alert('Please provide titles for all tags.');
+                    return;
+                }
+                
+                this.tagData.titles = titles;
+                this.addUserMessage(`Titles: ${titles.map(t => `"${t}"`).join(', ')}`);
+                this.hideInput();
+                this.showTagConfirmation();
+            }
+            
+            showTagConfirmation() {
+                const previewHtml = this.tagData.titles.map(title => 
+                    `<span class="tag-item" style="background: #6c757d;">${title}</span>`
+                ).join('');
+                
+                this.addBotMessage(`📋 Please review your tags:\n\n<div class="tag-preview">${previewHtml}</div>`);
+                this.showOptions([
+                    { text: '✅ Confirm Tags', action: 'confirmTags' },
+                    { text: '✏️ Edit Tags', action: 'editTags' },
+                    { text: '❌ Cancel', action: 'dontWantToTag' }
+                ]);
+            }
+            
+            editTags() {
+                this.addBotMessage("Let's edit your tags. Please provide the updated titles:");
+                this.getTitlesInput();
+            }
+            
+            showColorSelection() {
+                this.addBotMessage("🎨 Great! Now let's choose colors for your tags:");
+                
+                setTimeout(() => {
+                    this.inputContainer.innerHTML = '';
+                    
+                    this.tagData.titles.forEach((title, index) => {
+                        const group = document.createElement('div');
+                        group.className = 'input-group';
+                        
+                        const label = document.createElement('label');
+                        label.className = 'input-label';
+                        label.textContent = `${title}:`;
+                        
+                        const colorPicker = document.createElement('div');
+                        colorPicker.className = 'color-picker';
+                        
+                        this.tagColors.forEach((color, colorIndex) => {
+                            const colorOption = document.createElement('div');
+                            colorOption.className = 'color-option';
+                            colorOption.style.background = color;
+                            colorOption.dataset.color = color;
+                            colorOption.dataset.tagIndex = index;
+                            
+                            if (colorIndex === index % this.tagColors.length) {
+                                colorOption.classList.add('selected');
+                                this.tagData.colors[index] = color;
+                            }
+                            
+                            colorOption.onclick = () => this.selectColor(colorOption, index);
+                            colorPicker.appendChild(colorOption);
+                        });
+                        
+                        group.appendChild(label);
+                        group.appendChild(colorPicker);
+                        this.inputContainer.appendChild(group);
+                    });
+                    
+                    const submitBtn = document.createElement('button');
+                    submitBtn.className = 'btn-primary';
+                    submitBtn.textContent = 'Set Colors';
+                    submitBtn.onclick = () => this.showFinalConfirmation();
+                    
+                    this.inputContainer.appendChild(submitBtn);
+                    this.inputContainer.classList.add('show');
+                }, 1200);
+            }
+            
+            selectColor(colorElement, tagIndex) {
+                // Remove previous selection for this tag
+                const colorPicker = colorElement.parentNode;
+                colorPicker.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // Add selection to clicked color
+                colorElement.classList.add('selected');
+                this.tagData.colors[tagIndex] = colorElement.dataset.color;
+            }
+            
+            showFinalConfirmation() {
+                this.hideInput();
+                
+                const previewHtml = this.tagData.titles.map((title, index) => 
+                    `<span class="tag-item" style="background: ${this.tagData.colors[index]};">${title}</span>`
+                ).join('');
+                
+                this.addBotMessage(`🔍 Final review - Here are your tags with colors:\n\n<div class="tag-preview">${previewHtml}</div>\n\nReady to create these tags?`);
+                this.showOptions([
+                    { text: '✅ Yes, Create Tags!', action: 'finalConfirm' },
+                    { text: '🎨 Change Colors', action: 'goBack' },
+                    { text: '❌ Cancel', action: 'dontWantToTag' }
+                ]);
+            }
+            
+            createTags() {
+                this.addBotMessage("🎉 <strong>Success!</strong><br>Your tags have been created successfully!\n\n<div class=\"success-message\">✨ Tags are now available for use in your events.<br>You can find them in the tag selector when creating or editing events.</div>");
+                
+                setTimeout(() => {
+                    this.showOptions([
+                        { text: '🏷️ Create More Tags', action: 'restart' },
+                        { text: '📖 View Tag Guide', action: 'showGuide' }
+                    ]);
+                }, 2000);
+            }
+            
+            exitFlow() {
+                this.addBotMessage("No problem! You can always come back when you're ready to create tags.\n\nIs there anything else I can help you with?");
+                this.showOptions([
+                    { text: '🏷️ Create Tag', action: 'startTagCreation' },
+                    { text: '📖 View Tag Guide', action: 'showGuide' },
+                    { text: '❓ Ask a Question', action: 'showHelp' }
+                ]);
+            }
+            
+            restart() {
+                this.tagData = {
+                    type: null,
+                    descriptions: [],
+                    titles: [],
+                    colors: [],
+                    similarTags: []
+                };
+                this.currentStep = 'initial';
+                this.chatMessages.innerHTML = '';
+                this.hideOptions();
+                this.hideInput();
+                this.init();
+            }
+            
+            scrollToBottom() {
+                setTimeout(() => {
+                    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+                }, 100);
+            }
+        }
+        
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Initialize the chatbot when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TagCreationChatbot();
+        });
+    </script>
+</body>
+</html>
