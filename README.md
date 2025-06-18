@@ -94,4 +94,4 @@ Feel free to submit issues and enhancement requests!
 
 ---
 
-**Built with ❤️ for better event management** 
+**Built with ❤️ for better event management**
